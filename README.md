@@ -1,30 +1,30 @@
-# Demo Library
-This project is a library for padding Strings in Java.
+# Gradoop DataStream API Library
 
 ---
-**WARNING**
+**Überblick**
 
-Don't use this in production. It was created for demo purposes only.
+Diese Library ist eine Erweiterung des Gradoop-Projekts der Universität Leipzig. Sie ermöglicht die Nutzung der DataStream-API-Funktionalitäten von Apache Flink im Batchmodus, speziell zugeschnitten auf Graphdatenverarbeitung. Dies bietet eine verbesserte Flexibilität und Effizienz für Batch-Verarbeitungsaufgaben in Gradoop.
 
 ---
 
-## How to use it:
+**Funktionen**
 
-Add the following dependency:
+- DataStream-API Integration: Nahtlose Integration der DataStream-API in das Gradoop-Framework.
+- Batchmodus-Unterstützung: Optimiert für die effiziente Verarbeitung großer Datenmengen im Batchmodus.
+- Graphdatenverarbeitung: Speziell entwickelte Funktionen für Graphdaten, einschließlich Transformationen und Analysen.
+
+---
+
+**Installation**
+
+Fügen Sie die folgende Abhängigkeit zu Ihrem Maven-Projekt hinzu:
+
 ````XML
-<dependency>
-    <groupId>com.thegreatapi.demolibrary</groupId>
-    <artifactId>demolibrary</artifactId>
-    <version>${VERSION}</version>
-</dependency>
-````
-The folling code
-````java
-String paddedString = this.stringPadder.padLeft("My String", 30, '-');
-System.out.println(paddedString);
-````
-Will print:
 
-````
----------------------My String
+<dependency>
+    <groupId>de.uni-leipzig</groupId>
+    <artifactId>gradoop-datastream-api</artifactId>
+    <version>1.0.0</version>
+</dependency>
+
 ````
