@@ -18,6 +18,7 @@ public interface DataSet<T> {
     <R> DataSet<R> mapPartition(MapPartitionFunction<T, R> mapPartition) throws Exception;
 
     <R> DataSet<R> flatMap(FlatMapFunction<T, R> flatMapper) throws Exception;
+    <R> DataSet<R> join(FlatMapFunction<T, R> flatMapper) throws Exception;
 
     DataSet<T> filter(FilterFunction<T> filter) throws Exception;
 

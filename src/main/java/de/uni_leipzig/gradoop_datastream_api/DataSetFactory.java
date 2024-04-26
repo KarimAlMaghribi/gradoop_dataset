@@ -23,7 +23,7 @@ public final class DataSetFactory {
      * @return a new instance of DataSet
      */
     public static <T> DataSet<T> createDataSet(StreamExecutionEnvironment env, DataStream<T> internalStream, TypeInformation<T> type) {
-        return new DataSetImpl<>(env, internalStream, type); // Assume DataSetImpl is the concrete implementation
+        return new DataSetImpl<>(env, internalDataSet, type); // Assume DataSetImpl is the concrete implementation
     }
 
     // Additional factory methods can be added here if needed

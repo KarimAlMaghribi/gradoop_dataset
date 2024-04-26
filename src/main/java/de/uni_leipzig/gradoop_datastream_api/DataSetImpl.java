@@ -1,9 +1,11 @@
 package de.uni_leipzig.gradoop_datastream_api;
 
+import org.apache.flink.api.common.RuntimeExecutionMode;
 import org.apache.flink.api.common.functions.*;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.api.common.typeinfo.TypeHint;
+import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -24,18 +26,34 @@ public class DataSetImpl<T> implements DataSet<T> {
 
     private final StreamExecutionEnvironment env;
     private final DataStream<T> internalStream;
+    private final org.apache.flink.api.java.DataSet<T> internalDataSet;
     private final TypeInformation<T> typeInfo;
+    private final ExecutionEnvironment executionEnvironment = ExecutionEnvironment.getExecutionEnvironment();
 
-    public DataSetImpl(StreamExecutionEnvironment env, DataStream<T> internalStream, TypeInformation<T> typeInfo) {
+    public DataSetImpl(StreamExecutionEnvironment env, org.apache.flink.api.java.DataSet<T> internalDataSet, TypeInformation<T> typeInfo) throws Exception {
         this.env = env;
-        this.internalStream = internalStream;
+        env.setRuntimeMode(RuntimeExecutionMode.BATCH);
+        this.internalStream = env.fromCollection(internalDataSet.collect());
+        this.internalDataSet = internalDataSet;
         this.typeInfo = typeInfo;
+
+        env.setRuntimeMode(RuntimeExecutionMode.BATCH);
+    }
+
+    private DataStream<T> transformDataStreamToDataSet(DataStream<T> dataStream) {
+        return executionEnvironment.fromCollection(dataStream.);
+        return dataStream.
+    }
+
+    private DataStream<T> transformDataSetToDataStream(org.apache.flink.api.java.DataSet<T> dataSet) {
+
+
     }
 
     @Override
     public <R> DataSet<R> map(MapFunction<T, R> mapper) {
         DataStream<R> resultStream = internalStream.map(mapper);
-        return new DataSetImpl<>(env, resultStream, resultStream.getType());
+        return new DataSetImpl<>(env, internalDataSet, resultStream.getType());
     }
 
     // Implementations for other DataSet methods follow...
@@ -50,20 +68,30 @@ public class DataSetImpl<T> implements DataSet<T> {
                 // Implementation of mapPartition logic
             }
         });
-        return new DataSetImpl<>(env, resultStream, resultStream.getType());
+        return new DataSetImpl<>(env, internalDataSet, resultStream.getType());
     }
 
 
     @Override
     public <R> DataSet<R> flatMap(FlatMapFunction<T, R> flatMapper) {
         DataStream<R> resultStream = internalStream.flatMap(flatMapper);
-        return new DataSetImpl<>(env, resultStream, resultStream.getType());
+        return new DataSetImpl<>(env, internalDataSet, resultStream.getType());
     }
 
     @Override
-    public DataSet<T> filter(FilterFunction<T> filter) {
+    public DataSet<T> filter(FilterFunction<T> filter) throws Exception {
         DataStream<T> resultStream = internalStream.filter(filter);
-        return new DataSetImpl<>(env, resultStream, resultStream.getType());
+        CloseableIterator iterator = resultStream.executeAndCollect();
+        List streamingResult = new ArrayList<>();
+
+        iterator.forEachRemaining(streamingResult::add);
+        iterator.close();
+        return new DataSetImpl<>(env, internalDataSet, resultStream.getType());
+    }
+
+    @Override
+    public DataSet<T> join(org.apache.flink.api.java.DataSet<T> dataSet) {
+
     }
 
     @Override
@@ -83,7 +111,7 @@ public class DataSetImpl<T> implements DataSet<T> {
                 })
                 .sum(field);
 
-        return new DataSetImpl<>(env, summedStream, summedStream.getType());
+        return new DataSetImpl<>(env, internalDataSet, summedStream.getType());
     }
 
     @Override
@@ -103,7 +131,7 @@ public class DataSetImpl<T> implements DataSet<T> {
                 })
                 .maxBy(field);
 
-        return new DataSetImpl<>(env, maxStream, maxStream.getType());
+        return new DataSetImpl<>(env, internalDataSet, maxStream.getType());
     }
 
 
@@ -124,7 +152,7 @@ public class DataSetImpl<T> implements DataSet<T> {
                 })
                 .minBy(field);
 
-        return new DataSetImpl<>(env, minStream, minStream.getType());
+        return new DataSetImpl<>(env, internalDataSet, minStream.getType());
     }
 
     @Override
@@ -177,7 +205,7 @@ public class DataSetImpl<T> implements DataSet<T> {
         // In a real-world scenario, you should use actual keying if you want a keyed reduce
         // And you should also consider the parallelism implications of keying by a constant
 
-        return new DataSetImpl<>(env, reducedStream, reducedStream.getType());
+        return new DataSetImpl<>(env, internalDataSet, reducedStream.getType());
     }
 
     @Override
@@ -233,7 +261,7 @@ public class DataSetImpl<T> implements DataSet<T> {
         // Infer the result type information
         TypeInformation<R> resultType = TypeInformation.of(new TypeHint<R>() {});
 
-        return new DataSetImpl<>(env, resultStream, resultType);
+        return new DataSetImpl<>(env, internalDataSet, resultType);
     }
 
 
@@ -291,7 +319,7 @@ public class DataSetImpl<T> implements DataSet<T> {
         // Infer the result type information
         TypeInformation<R> resultType = TypeInformation.of(new TypeHint<R>() {});
 
-        return new DataSetImpl<>(env, resultStream, resultType);
+        return new DataSetImpl<>(env, internalDataSet, resultType);
     }
 
 
